@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Login - Snowwyn HIA</title>
+  <script defer src="/js/main.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+</head>
+<body class="bg-yellow-50 flex items-center justify-center h-screen">
+  <div class="bg-white p-8 rounded shadow-md w-96">
+    <h1 class="text-2xl font-bold mb-4 text-center">Snowwyn HIA Login</h1>
+    <form id="loginForm" class="space-y-4">
+      <input type="text" id="username" placeholder="Username" class="w-full p-2 border rounded">
+      <select id="role" class="w-full p-2 border rounded">
+        <option value="staff">Staff</option>
+        <option value="admin">Admin</option>
+      </select>
+      <button type="submit" class="w-full bg-blue-500 text-white p-2 rounded">Login</button>
+    </form>
+  </div>
+</body>
+</html>
