@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Habbo HIA – Login</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import {
+      getAuth,
+      GoogleAuthProvider,
+      signInWithPopup,
+      signOut,
+      onAuthStateChanged
+    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCK3JRdttpI9lMzCyIx443Poi5PCrPu2yM",
+      authDomain: "snowwyn-habbo-hia.firebaseapp.com",
+      projectId: "snowwyn-habbo-hia",
+      storageBucket: "snowwyn-habbo-hia.firebasestorage.app",
+      messagingSenderId: "863463656284",
+      appId: "1:863463656284:web:da5e5506393f878a5ccf99",
+      measurementId: "G-Q5F7GLEVEM"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const provider = new GoogleAuthProvider();
+
+    const loginButton = document.getElementById("login-btn");
+    const logoutButton = document.getElementById("logout-btn");
+    const userInfo = document.getElementById("user-info");
+
+    loginButton.addEventListener("click", async () => {
+      try {
+        await signInWithPopup(auth, provider);
+      } catch (error) {
+        alert("Login failed: " + error.message);
+      }
+    });
+
+    logoutButton.addEventListener("click", () => {
+      signOut(auth);
+    });
+
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        userInfo.innerHTML = `
+          <p class="text-sm text-gray-300">Signed in as <strong>${user.displayName}</strong></p>
+          <button id="logout-btn" class="mt-4 bg-red-500 hover:bg-red-600 text-white py-2 px-4 rounded-lg">Sign out</button>
+        `;
+        // Re-bind logout button
+        document.getElementById("logout-btn").addEventListener("click", () => signOut(auth));
+        // Optional: Redirect to dashboard
+        window.location.href = "dashboard.html";
+      } else {
+        userInfo.innerHTML = "";
+      }
+    });
+  </script>
+</head>
+
+<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
+  <div class="bg-gray-800 p-8 rounded-2xl shadow-xl text-center max-w-md w-full">
+    <h1 class="text-3xl font-bold mb-4">Habbo HIA Portal</h1>
+    <p class="text-sm text-gray-400 mb-6">Please sign in with your Google account</p>
+    <button id="login-btn" class="bg-blue-600 hover:bg-blue-700 text-white py-2 px-6 rounded-lg">
+      Sign in with Google
+    </button>
+    <div id="user-info" class="mt-6"></div>
+  </div>
+</body>
+</html>
