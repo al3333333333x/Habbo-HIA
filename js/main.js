@@ -6,36 +6,38 @@ document.addEventListener("DOMContentLoaded", () => {
   if (loginForm) {
     loginForm.addEventListener("submit", (e) => {
       e.preventDefault();
-      const username = usernameInput.value;
+      const username = usernameInput.value.trim();
       const role = roleSelect.value;
       localStorage.setItem("currentUser", JSON.stringify({ username, role }));
       window.location.href = role === "admin" ? "admin.html" : "dashboard.html";
     });
   }
 
-  const userList = document.getElementById("userList") || document.getElementById("adminUserList");
-  if (userList) {
-    const users = JSON.parse(localStorage.getItem("users")) || [];
-    userList.innerHTML = users.map((user, index) => \`
-      <div class="bg-white p-4 rounded shadow">
-        <h2 class="font-bold text-xl">\${user.username}</h2>
-        <p>Role: \${user.role}</p>
-        \${userList.id === "adminUserList" ? '<button onclick="deleteUser(' + index + ')" class="mt-2 bg-red-500 text-white px-2 py-1 rounded">Delete</button>' : ''}
-      </div>
-    \`).join('');
+  const userListEl = document.getElementById("userList") || document.getElementById("adminUserList");
+
+  if (userListEl) {
+    db.collection("users").onSnapshot(snapshot => {
+      userListEl.innerHTML = "";
+      snapshot.forEach(doc => {
+        const user = doc.data();
+        const div = document.createElement("div");
+        div.className = "bg-white p-4 rounded shadow";
+        div.innerHTML = `
+          <h2 class="font-bold text-xl">${user.username}</h2>
+          <p>Role: ${user.role}</p>
+          ${userListEl.id === "adminUserList" ? '<button onclick="deleteUser(\'' + doc.id + '\')" class="mt-2 bg-red-500 text-white px-2 py-1 rounded">Delete</button>' : ''}
+        `;
+        userListEl.appendChild(div);
+      });
+    });
   }
 });
 
 function addDummyUser() {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  users.push({ username: "HabboUser" + (users.length + 1), role: "staff" });
-  localStorage.setItem("users", JSON.stringify(users));
-  location.reload();
+  const username = "HabboUser_" + Math.floor(Math.random() * 10000);
+  db.collection("users").add({ username: username, role: "staff" });
 }
 
-function deleteUser(index) {
-  const users = JSON.parse(localStorage.getItem("users")) || [];
-  users.splice(index, 1);
-  localStorage.setItem("users", JSON.stringify(users));
-  location.reload();
+function deleteUser(docId) {
+  db.collection("users").doc(docId).delete();
 }
