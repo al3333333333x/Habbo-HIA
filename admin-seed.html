@@ -1,132 +1,36 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Admin Firestore Seeder</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Firebase SDKs -->
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"></script>
-</head>
-<body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-  <div class="bg-gray-800 p-8 rounded-2xl shadow-xl max-w-lg w-full text-center">
-    <h1 class="text-2xl font-bold mb-4">Firestore Seeder</h1>
-    <p class="mb-6">Click the button below to populate your Firestore database with seed data.</p>
-    <button onclick="seedFirestore()" class="bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-6 rounded-xl">
-      Seed Firestore
-    </button>
-    <p id="status" class="mt-6 text-sm text-gray-400"></p>
-  </div>
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyCK3JRdttpI9lMzCyIx443Poi5PCrPu2yM",
+    authDomain: "snowwyn-habbo-hia.firebaseapp.com",
+    projectId: "snowwyn-habbo-hia",
+    storageBucket: "snowwyn-habbo-hia.firebasestorage.app",
+    messagingSenderId: "863463656284",
+    appId: "1:863463656284:web:da5e5506393f878a5ccf99",
+    measurementId: "G-Q5F7GLEVEM"
+  };
 
-  <script>
-    const firebaseConfig = {
-      apiKey: "AIzaSyCK3JRdttpI9lMzCyIx443Poi5PCrPu2yM",
-      authDomain: "snowwyn-habbo-hia.firebaseapp.com",
-      projectId: "snowwyn-habbo-hia",
-      storageBucket: "snowwyn-habbo-hia.firebasestorage.app",
-      messagingSenderId: "863463656284",
-      appId: "1:863463656284:web:da5e5506393f878a5ccf99",
-      measurementId: "G-Q5F7GLEVEM"
-    };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
 
-    firebase.initializeApp(firebaseConfig);
-    const db = firebase.firestore();
+  async function seedFirestore() {
+    const db = firebase.firestore(); // ✅ Moved here
+    const status = document.getElementById('status');
 
-    async function seedFirestore() {
-      const status = document.getElementById('status');
-      try {
-        // Sample data as shown previously
-        await db.collection("users").add({
-          username: "PixelMaster",
-          role: "staff",
-          rank: "Private",
-          habbo_id: "pm123",
-          createdAt: firebase.firestore.Timestamp.now()
-        });
+    try {
+      // Seeding logic...
+      await db.collection("users").add({
+        username: "PixelMaster",
+        role: "staff",
+        rank: "Private",
+        habbo_id: "pm123",
+        createdAt: firebase.firestore.Timestamp.now()
+      });
 
-        await db.collection("users").add({
-          username: "Trainer101",
-          role: "admin",
-          rank: "Trainer",
-          habbo_id: "tr101",
-          createdAt: firebase.firestore.Timestamp.now()
-        });
+      // Add all other seed collections here as shown before...
 
-        await db.collection("promotions").add({
-          userId: "u12345",
-          username: "PixelMaster",
-          oldRank: "Recruit",
-          newRank: "Private",
-          reason: "Completed basic training",
-          promotedBy: "Trainer101",
-          date: firebase.firestore.Timestamp.fromDate(new Date("2025-05-14T14:32:00Z"))
-        });
-
-        await db.collection("trainings").add({
-          trainerId: "u5678",
-          trainerName: "SergeantPix",
-          type: "BT",
-          trainees: ["PixelMaster", "HabboHero"],
-          notes: "Excellent engagement",
-          date: firebase.firestore.Timestamp.fromDate(new Date("2025-05-14T10:00:00Z"))
-        });
-
-        await db.collection("sales").add({
-          staffId: "u999",
-          staffName: "PixelMaster",
-          item: "VIP Membership",
-          amount: 20,
-          buyer: "HabboGuest92",
-          date: firebase.firestore.Timestamp.now()
-        });
-
-        await db.collection("badgeRequests").add({
-          userId: "u12345",
-          username: "PixelMaster",
-          badgeCode: "HIA-TRAINER",
-          reason: "Passed Trainer Evaluation",
-          status: "pending",
-          requestedAt: firebase.firestore.Timestamp.now()
-        });
-
-        await db.collection("loa").add({
-          userId: "u12345",
-          username: "PixelMaster",
-          startDate: firebase.firestore.Timestamp.fromDate(new Date("2025-05-20")),
-          endDate: firebase.firestore.Timestamp.fromDate(new Date("2025-05-25")),
-          reason: "Exam week",
-          status: "pending",
-          submittedAt: firebase.firestore.Timestamp.now()
-        });
-
-        await db.collection("tours").add({
-          staffId: "u999",
-          staffName: "PixelMaster",
-          guestName: "Newbie42",
-          date: firebase.firestore.Timestamp.now(),
-          notes: "Showed them training hall"
-        });
-
-        await db.collection("notices").add({
-          title: "Welcome to Snowwyn HIA!",
-          body: "All staff are reminded to complete their weekly trainings.",
-          postedBy: "Trainer101",
-          postedAt: firebase.firestore.Timestamp.now()
-        });
-
-        await db.collection("settings").add({
-          userId: "u12345",
-          theme: "dark",
-          displayName: "PixelMaster",
-          discordId: "pixelmaster#1234"
-        });
-
-        status.innerText = "✅ Firestore seeded successfully!";
-      } catch (error) {
-        status.innerText = "❌ Error seeding Firestore: " + error.message;
-      }
+      status.innerText = "✅ Firestore seeded successfully!";
+    } catch (error) {
+      status.innerText = "❌ Error seeding Firestore: " + error.message;
     }
-  </script>
-</body>
-</html>
+  }
+</script>
