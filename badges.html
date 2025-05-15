@@ -2,23 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Admin Badge Requests – Habbo HIA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Badge Request – Habbo HIA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged,
-      signOut
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import {
       getFirestore,
       collection,
-      getDocs,
-      updateDoc,
-      doc,
-      getDoc
+      addDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -35,54 +32,52 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const tableBody = document.getElementById("badge-requests-body");
+    const badgeForm = document.getElementById("badge-form");
+    const feedback = document.getElementById("feedback");
 
-    onAuthStateChanged(auth, async (user) => {
-      if (!user) return (window.location.href = "login.html");
-      const userDoc = await getDoc(doc(db, "users", user.uid));
-      const data = userDoc.data();
-      if (data.role !== "admin") return (window.location.href = "dashboard.html");
+    onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        window.location.href = "login.html";
+      }
 
-      const badgeSnap = await getDocs(collection(db, "badge_requests"));
-      badgeSnap.forEach((docSnap) => {
-        const req = docSnap.data();
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td class="px-4 py-2">${req.userId}</td>
-          <td class="px-4 py-2">${req.badgeCode}</td>
-          <td class="px-4 py-2">${req.reason}</td>
-          <td class="px-4 py-2">${req.status}</td>
-          <td class="px-4 py-2 space-x-2">
-            <button class="bg-green-600 px-2 py-1 rounded" onclick="updateStatus('${docSnap.id}', 'approved')">Approve</button>
-            <button class="bg-red-600 px-2 py-1 rounded" onclick="updateStatus('${docSnap.id}', 'rejected')">Reject</button>
-          </td>
-        `;
-        tableBody.appendChild(row);
+      badgeForm.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const badgeCode = document.getElementById("badge-code").value;
+        const reason = document.getElementById("reason").value;
+
+        try {
+          await addDoc(collection(db, "badge_requests"), {
+            userId: user.uid,
+            badgeCode,
+            reason,
+            status: "pending",
+            createdAt: serverTimestamp()
+          });
+          feedback.textContent = "Badge request submitted successfully.";
+          badgeForm.reset();
+        } catch (err) {
+          feedback.textContent = "Error submitting request.";
+          console.error(err);
+        }
       });
     });
-
-    window.updateStatus = async (docId, newStatus) => {
-      const docRef = doc(db, "badge_requests", docId);
-      await updateDoc(docRef, { status: newStatus });
-      location.reload();
-    };
   </script>
 </head>
-<body class="bg-gray-900 text-white">
-  <div class="p-6 max-w-5xl mx-auto">
-    <h1 class="text-2xl font-bold mb-6">Admin Badge Request Panel</h1>
-    <table class="w-full table-auto bg-gray-800 rounded-lg overflow-hidden">
-      <thead>
-        <tr class="bg-gray-700">
-          <th class="px-4 py-2">User</th>
-          <th class="px-4 py-2">Badge Code</th>
-          <th class="px-4 py-2">Reason</th>
-          <th class="px-4 py-2">Status</th>
-          <th class="px-4 py-2">Actions</th>
-        </tr>
-      </thead>
-      <tbody id="badge-requests-body"></tbody>
-    </table>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="bg-gray-800 p-8 rounded-lg w-full max-w-lg shadow-lg">
+    <h1 class="text-2xl font-bold mb-6 text-center">Badge Request</h1>
+    <form id="badge-form" class="space-y-4">
+      <div>
+        <label for="badge-code" class="block mb-1">Badge Code</label>
+        <input type="text" id="badge-code" required class="w-full p-2 rounded bg-gray-700 border border-gray-600"/>
+      </div>
+      <div>
+        <label for="reason" class="block mb-1">Reason</label>
+        <textarea id="reason" required rows="4" class="w-full p-2 rounded bg-gray-700 border border-gray-600"></textarea>
+      </div>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 p-2 rounded">Submit Request</button>
+    </form>
+    <p id="feedback" class="text-green-400 mt-4 text-center"></p>
   </div>
 </body>
 </html>
