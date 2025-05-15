@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Register – Snowwyn HIA</title>
+  <title>Register – Habbo HIA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
@@ -32,74 +32,64 @@
     const db = getFirestore(app);
 
     const form = document.getElementById("register-form");
+    const errorBox = document.getElementById("error-box");
 
     form.addEventListener("submit", async (e) => {
       e.preventDefault();
+      errorBox.textContent = "";
 
-      const name = form.name.value.trim();
-      const habboId = form.habboId.value.trim();
       const email = form.email.value.trim();
       const password = form.password.value;
+      const habboID = form.habboID.value.trim();
 
-      if (!name || !habboId || !email || !password) {
-        alert("All fields are required.");
-        return;
-      }
-
-      if (password.length < 6) {
-        alert("Password must be at least 6 characters.");
+      if (!email || !password || !habboID) {
+        errorBox.textContent = "All fields are required.";
         return;
       }
 
       try {
-        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-        const user = userCredential.user;
+        // Verify Habbo ID
+        const res = await fetch(`https://www.habbo.com/api/public/users?name=${habboID}`);
+        if (!res.ok) {
+          throw new Error("Invalid Habbo ID. User not found.");
+        }
+        const habboData = await res.json();
 
-        await setDoc(doc(db, "users", user.uid), {
-          uid: user.uid,
-          name: name,
-          habboId: habboId,
-          email: email,
+        // Create Firebase user
+        const userCred = await createUserWithEmailAndPassword(auth, email, password);
+        const uid = userCred.user.uid;
+
+        // Store user in Firestore
+        await setDoc(doc(db, "users", uid), {
+          email,
+          habboID,
           role: "member",
-          joinedAt: new Date()
+          habboProfile: habboData,
+          createdAt: new Date().toISOString()
         });
 
         alert("Registration successful! Redirecting...");
-        window.location.href = "dashboard.html";
-      } catch (error) {
-        alert("Error: " + error.message);
+        window.location.href = "login.html";
+      } catch (err) {
+        console.error(err);
+        errorBox.textContent = err.message;
       }
     });
   </script>
 </head>
 <body class="bg-gray-900 text-white flex items-center justify-center min-h-screen">
-  <div class="bg-gray-800 p-8 rounded-xl shadow-lg w-full max-w-md">
-    <h1 class="text-3xl font-bold mb-6 text-center">Register</h1>
+  <div class="bg-gray-800 p-8 rounded-xl shadow-lg max-w-md w-full">
+    <h2 class="text-2xl font-bold mb-4">Register – Habbo HIA</h2>
     <form id="register-form" class="space-y-4">
-      <div>
-        <label class="block mb-1 text-sm">Full Name</label>
-        <input name="name" type="text" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm">Habbo ID</label>
-        <input name="habboId" type="text" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm">Email</label>
-        <input name="email" type="email" class="w-full p-2 rounded bg-gray-700 text-white" required />
-      </div>
-      <div>
-        <label class="block mb-1 text-sm">Password</label>
-        <input name="password" type="password" class="w-full p-2 rounded bg-gray-700 text-white" required minlength="6"/>
-      </div>
-      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded mt-4">
+      <input type="email" name="email" placeholder="Email" class="w-full px-4 py-2 rounded bg-gray-700 text-white" required />
+      <input type="password" name="password" placeholder="Password" class="w-full px-4 py-2 rounded bg-gray-700 text-white" required />
+      <input type="text" name="habboID" placeholder="Habbo Username" class="w-full px-4 py-2 rounded bg-gray-700 text-white" required />
+      <p id="error-box" class="text-red-400 text-sm"></p>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 py-2 rounded text-white">
         Register
       </button>
     </form>
-    <p class="mt-4 text-sm text-center text-gray-400">
-      Already have an account?
-      <a href="login.html" class="text-blue-400 underline">Log in</a>
-    </p>
+    <p class="text-sm text-gray-400 mt-4">Already have an account? <a href="login.html" class="text-blue-400 underline">Log in</a></p>
   </div>
 </body>
 </html>
