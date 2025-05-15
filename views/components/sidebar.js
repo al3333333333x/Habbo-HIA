@@ -1,0 +1,1 @@
+// Sidebar rendering logic if needed

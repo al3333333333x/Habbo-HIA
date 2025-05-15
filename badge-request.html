@@ -5,87 +5,42 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Request Badge – Habbo HIA</title>
   <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
-    import {
-      getAuth,
-      onAuthStateChanged
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-    import {
-      getFirestore,
-      doc,
-      setDoc,
-      serverTimestamp
-    } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-    const firebaseConfig = {
-      apiKey: "AIzaSyCK3JRdttpI9lMzCyIx443Poi5PCrPu2yM",
-      authDomain: "snowwyn-habbo-hia.firebaseapp.com",
-      projectId: "snowwyn-habbo-hia",
-      storageBucket: "snowwyn-habbo-hia.firebasestorage.app",
-      messagingSenderId: "863463656284",
-      appId: "1:863463656284:web:da5e5506393f878a5ccf99",
-      measurementId: "G-Q5F7GLEVEM"
-    };
-
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
-    const db = getFirestore(app);
-
-    const form = document.getElementById("badge-form");
-    const message = document.getElementById("form-message");
-
-    onAuthStateChanged(auth, (user) => {
-      if (!user) {
-        window.location.href = "login.html";
-        return;
-      }
-
-      form.addEventListener("submit", async (e) => {
-        e.preventDefault();
-        const badgeName = form.badgeName.value.trim();
-        const reason = form.reason.value.trim();
-
-        if (!badgeName || !reason) {
-          message.textContent = "Please fill in all fields.";
-          return;
-        }
-
-        const badgeRequest = {
-          uid: user.uid,
-          badgeName,
-          reason,
-          status: "pending",
-          timestamp: serverTimestamp()
-        };
-
-        try {
-          await setDoc(doc(db, "badgeRequests", `${user.uid}_${Date.now()}`), badgeRequest);
-          message.textContent = "Badge request submitted successfully.";
-          form.reset();
-        } catch (error) {
-          console.error("Error submitting badge request:", error);
-          message.textContent = "Error submitting request.";
-        }
-      });
-    });
-  </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
-  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
-    <h2 class="text-2xl font-bold mb-4 text-center">Request a Badge</h2>
-    <form id="badge-form" class="space-y-4">
-      <div>
-        <label class="block mb-1">Badge Name</label>
-        <input name="badgeName" type="text" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required />
+<body class="bg-gray-900 text-white min-h-screen flex">
+  <!-- Sidebar -->
+  <div class="w-64 bg-gray-800 min-h-screen flex flex-col justify-between">
+    <div>
+      <div class="p-6 border-b border-gray-700">
+        <h1 class="text-2xl font-bold">Habbo HIA</h1>
       </div>
-      <div>
-        <label class="block mb-1">Reason</label>
-        <textarea name="reason" rows="4" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required></textarea>
-      </div>
-      <p id="form-message" class="text-sm text-yellow-400"></p>
-      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Submit Request</button>
-    </form>
+      <nav class="flex flex-col p-4 space-y-2">
+        <a href="dashboard.html" class="text-white hover:bg-gray-700 rounded px-4 py-2">Dashboard</a>
+        <a href="badge-request.html" class="text-white bg-gray-700 rounded px-4 py-2">Request Badge</a>
+        <a href="badge-admin.html" class="text-white hover:bg-gray-700 rounded px-4 py-2">Badge Approval</a>
+      </nav>
+    </div>
   </div>
+  <div class="flex-1 flex items-center justify-center p-10">
+    <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+      <h2 class="text-2xl font-bold mb-4 text-center">Request a Badge</h2>
+      <form id="badge-form" class="space-y-4">
+        <div>
+          <label class="block mb-1">Badge Name</label>
+          <input name="badgeName" type="text" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required />
+        </div>
+        <div>
+          <label class="block mb-1">Reason</label>
+          <textarea name="reason" rows="4" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required></textarea>
+        </div>
+        <p id="form-message" class="text-sm text-yellow-400"></p>
+        <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Submit Request</button>
+      </form>
+      <div class="mt-6">
+        <h3 class="text-lg font-semibold mb-2">Your Requests</h3>
+        <ul id="request-list" class="list-disc pl-6 space-y-1 text-sm text-gray-300"></ul>
+      </div>
+    </div>
+  </div>
+  <script type="module" src="controllers/badgeRequestController.js"></script>
 </body>
 </html>
