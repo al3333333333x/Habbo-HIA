@@ -1,1 +1,0 @@
-// Firebase Firestore logic for badge requests
