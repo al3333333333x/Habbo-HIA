@@ -1,0 +1,33 @@
+
+<!DOCTYPE html>
+<html><head><title>Dashboard</title></head><body>
+<nav>
+  <a href="dashboard.html">Dashboard</a> |
+  <a href="badge-request.html">Request Badge</a> |
+  <a href="profile.html">Profile</a> |
+  <a href="logs.html">Logs</a> |
+  <a href="badge-admin.html" id="adminPanel" style="display:none;">Admin Panel</a>
+  <button id="logout">Logout</button>
+</nav>
+<h2>Welcome to Dashboard</h2>
+<script type="module">
+  import { getAuth, onAuthStateChanged } from "firebase/auth";
+  import { fetchUserProfile } from "../controllers/userController.js";
+  import { handleLogout } from "../controllers/authController.js";
+
+  const auth = getAuth();
+  onAuthStateChanged(auth, async user => {
+    if (user) {
+      const profile = await fetchUserProfile(user.uid);
+      if (profile.role === "admin") document.getElementById("adminPanel").style.display = "inline";
+    } else {
+      window.location.href = "login.html";
+    }
+  });
+
+  document.getElementById("logout").addEventListener("click", async () => {
+    await handleLogout();
+    location.href = "login.html";
+  });
+</script>
+</body></html>
