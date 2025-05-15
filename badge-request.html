@@ -2,20 +2,20 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard – Habbo HIA</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Request Badge – Habbo HIA</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
     import {
       getAuth,
-      onAuthStateChanged,
-      signOut
+      onAuthStateChanged
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
     import {
       getFirestore,
       doc,
-      getDoc
+      setDoc,
+      serverTimestamp
     } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
     const firebaseConfig = {
@@ -32,98 +32,60 @@
     const auth = getAuth(app);
     const db = getFirestore(app);
 
-    const avatar = document.getElementById("avatar");
-    const welcomeText = document.getElementById("welcome-text");
-    const motto = document.getElementById("motto");
-    const role = document.getElementById("role");
-    const lastOnline = document.getElementById("last-online");
-    const logoutBtn = document.getElementById("logout-btn");
-    const adminLink = document.getElementById("admin-link");
-    const adminPanel = document.getElementById("admin-panel");
+    const form = document.getElementById("badge-form");
+    const message = document.getElementById("form-message");
 
-    onAuthStateChanged(auth, async (user) => {
+    onAuthStateChanged(auth, (user) => {
       if (!user) {
         window.location.href = "login.html";
         return;
       }
-      const docRef = doc(db, "users", user.uid);
-      const docSnap = await getDoc(docRef);
-      if (!docSnap.exists()) {
-        alert("User record not found.");
-        return;
-      }
-      const data = docSnap.data();
-      avatar.src = `https://www.habbo.com/habbo-imaging/avatarimage?user=${data.habboID}&direction=2&head_direction=2&gesture=sml&size=l`;
-      welcomeText.textContent = `Welcome, ${data.habboID}`;
-      motto.textContent = `Motto: ${data.habboProfile.motto}`;
-      role.textContent = `Role: ${data.role}`;
-      lastOnline.textContent = `Last online: ${new Date(data.habboProfile.lastAccessTime).toLocaleString()}`;
 
-      if (data.role === "admin") {
-        adminLink.classList.remove("hidden");
-        adminPanel.classList.remove("hidden");
-      }
-    });
+      form.addEventListener("submit", async (e) => {
+        e.preventDefault();
+        const badgeName = form.badgeName.value.trim();
+        const reason = form.reason.value.trim();
 
-    logoutBtn.addEventListener("click", () => {
-      signOut(auth).then(() => {
-        window.location.href = "login.html";
+        if (!badgeName || !reason) {
+          message.textContent = "Please fill in all fields.";
+          return;
+        }
+
+        const badgeRequest = {
+          uid: user.uid,
+          badgeName,
+          reason,
+          status: "pending",
+          timestamp: serverTimestamp()
+        };
+
+        try {
+          await setDoc(doc(db, "badgeRequests", `${user.uid}_${Date.now()}`), badgeRequest);
+          message.textContent = "Badge request submitted successfully.";
+          form.reset();
+        } catch (error) {
+          console.error("Error submitting badge request:", error);
+          message.textContent = "Error submitting request.";
+        }
       });
     });
   </script>
 </head>
-<body class="bg-gray-900 text-white min-h-screen flex">
-  <!-- Sidebar -->
-  <div class="w-64 bg-gray-800 min-h-screen flex flex-col justify-between">
-    <div>
-      <div class="p-6 border-b border-gray-700">
-        <h1 class="text-2xl font-bold">Habbo HIA</h1>
+<body class="bg-gray-900 text-white min-h-screen flex items-center justify-center">
+  <div class="bg-gray-800 p-8 rounded-lg shadow-lg w-full max-w-md">
+    <h2 class="text-2xl font-bold mb-4 text-center">Request a Badge</h2>
+    <form id="badge-form" class="space-y-4">
+      <div>
+        <label class="block mb-1">Badge Name</label>
+        <input name="badgeName" type="text" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required />
       </div>
-      <nav class="flex flex-col p-4 space-y-2">
-        <a href="dashboard.html" class="text-white hover:bg-gray-700 rounded px-4 py-2">Dashboard</a>
-        <a href="#" class="text-white hover:bg-gray-700 rounded px-4 py-2">Your Profile</a>
-        <a href="#" class="text-white hover:bg-gray-700 rounded px-4 py-2">User Logs</a>
-        <a href="badge-request.html" class="text-white hover:bg-gray-700 rounded px-4 py-2">Request Badge</a>
-        <a href="#" class="text-white hover:bg-gray-700 rounded px-4 py-2">Trainings</a>
-        <a href="#" class="text-white hover:bg-gray-700 rounded px-4 py-2">Promotions</a>
-        <a href="badge-admin.html" id="admin-link" class="text-white hover:bg-gray-700 rounded px-4 py-2 hidden">Badge Approval</a>
-        <a href="#" class="text-white hover:bg-gray-700 rounded px-4 py-2">Settings</a>
-      </nav>
-    </div>
-    <div class="p-4">
-      <button id="logout-btn" class="w-full bg-red-600 hover:bg-red-700 px-4 py-2 rounded">Log out</button>
-    </div>
-  </div>
-
-  <!-- Main content -->
-  <div class="flex-1 p-10 space-y-10">
-    <div class="bg-gray-800 p-6 rounded-lg shadow-lg text-center max-w-xl mx-auto">
-      <img id="avatar" src="" alt="Habbo Avatar" class="mx-auto rounded mb-4">
-      <h2 id="welcome-text" class="text-2xl font-bold mb-2"></h2>
-      <p id="motto" class="text-sm text-gray-300 mb-1"></p>
-      <p id="role" class="text-sm text-gray-400 mb-1"></p>
-      <p id="last-online" class="text-sm text-gray-500 mb-4"></p>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-      <div class="bg-gray-800 p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold">Total Users</h3>
-        <p class="text-3xl font-bold mt-2">123</p>
+      <div>
+        <label class="block mb-1">Reason</label>
+        <textarea name="reason" rows="4" class="w-full px-4 py-2 rounded bg-gray-700 border border-gray-600" required></textarea>
       </div>
-      <div class="bg-gray-800 p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold">Recent Trainings</h3>
-        <p class="text-3xl font-bold mt-2">12</p>
-      </div>
-      <div class="bg-gray-800 p-4 rounded-lg shadow">
-        <h3 class="text-lg font-semibold">Pending Badges</h3>
-        <p class="text-3xl font-bold mt-2">5</p>
-      </div>
-    </div>
-
-    <div id="admin-panel" class="hidden bg-gray-800 text-white p-6 rounded-lg">
-      <h3 class="text-lg font-semibold mb-2">Admin Panel</h3>
-      <p class="text-sm">Access administrative functions here...</p>
-    </div>
+      <p id="form-message" class="text-sm text-yellow-400"></p>
+      <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 px-4 py-2 rounded">Submit Request</button>
+    </form>
   </div>
 </body>
 </html>
