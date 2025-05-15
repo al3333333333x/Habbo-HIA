@@ -1,1 +1,0 @@
-// Firestore schema definitions or helpers
